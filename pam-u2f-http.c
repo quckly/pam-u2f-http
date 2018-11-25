@@ -102,7 +102,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
     struct passwd *pw = NULL, pw_s;
     const char *user = NULL;
-    char *password = NULL;
+    const char *password = "";
 
     cfg_t cfg_st;
     cfg_t *cfg = &cfg_st;
@@ -121,43 +121,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     int should_free_url = 0;
 
     parse_cfg(flags, argc, argv, cfg);
-
-    if (!cfg->origin) {
-        strcpy(buffer, DEFAULT_ORIGIN_PREFIX);
-
-        if (gethostname(buffer + strlen(DEFAULT_ORIGIN_PREFIX),
-                        BUFSIZE - strlen(DEFAULT_ORIGIN_PREFIX)) == -1) {
-            DBG("Unable to get host name");
-            goto done;
-        }
-        DBG("Origin not specified, using \"%s\"", buffer);
-        cfg->origin = strdup(buffer);
-        if (!cfg->origin) {
-            DBG("Unable to allocate memory");
-            goto done;
-        } else {
-            should_free_origin = 1;
-        }
-    }
-
-    if (!cfg->appid) {
-        DBG("Appid not specified, using the same value of origin (%s)",
-            cfg->origin);
-        cfg->appid = strdup(cfg->origin);
-        if (!cfg->appid) {
-            DBG("Unable to allocate memory")
-            goto done;
-        } else {
-            should_free_appid = 1;
-        }
-    }
-
-    if (!cfg->url) {
-        DBG("URL not specified, using http://127.0.0.1:8080/authenticate");
-        cfg->url = "http://127.0.0.1:8080/authenticate";
-        should_free_url = 1;
-    }
-
 
     pgu_ret = pam_get_user(pamh, &user, NULL);
     if (pgu_ret != PAM_SUCCESS || user == NULL) {
@@ -181,6 +144,45 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
         pam_set_item(pamh, PAM_AUTHTOK, password);
         retval = PAM_IGNORE;
         goto done;
+    }
+
+    if (!cfg->origin) {
+        strcpy(buffer, DEFAULT_ORIGIN_PREFIX);
+
+        if (gethostname(buffer + strlen(DEFAULT_ORIGIN_PREFIX),
+                        BUFSIZE - strlen(DEFAULT_ORIGIN_PREFIX)) == -1) {
+            DBG("Unable to get host name");
+            retval = PAM_CONV_ERR;
+            goto done;
+        }
+        DBG("Origin not specified, using \"%s\"", buffer);
+        cfg->origin = strdup(buffer);
+        if (!cfg->origin) {
+            DBG("Unable to allocate memory");
+            retval = PAM_CONV_ERR;
+            goto done;
+        } else {
+            should_free_origin = 1;
+        }
+    }
+
+    if (!cfg->appid) {
+        DBG("Appid not specified, using the same value of origin (%s)",
+            cfg->origin);
+        cfg->appid = strdup(cfg->origin);
+        if (!cfg->appid) {
+            DBG("Unable to allocate memory");
+            retval = PAM_CONV_ERR;
+            goto done;
+        } else {
+            should_free_appid = 1;
+        }
+    }
+
+    if (!cfg->url) {
+        DBG("URL not specified, using http://127.0.0.1:55555/authenticate");
+        cfg->url = "http://127.0.0.1:55555/authenticate";
+        should_free_url = 1;
     }
 
     DBG("Requesting authentication for user %s", user);
@@ -209,7 +211,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
             if (!buf) {
                 DBG("Unable to allocate memory");
-                retval = PAM_IGNORE;
+                retval = PAM_CONV_ERR;
                 goto done;
             }
 
@@ -222,7 +224,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
             if (!buf) {
                 DBG("Unable to allocate memory");
-                retval = PAM_IGNORE;
+                retval = PAM_CONV_ERR;
                 goto done;
             }
 
@@ -243,7 +245,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     if (openasuser) {
         if (seteuid(pw_s.pw_uid)) {
             DBG("Unable to switch user to uid %i", pw_s.pw_uid);
-            retval = PAM_IGNORE;
+            retval = PAM_CONV_ERR;
             goto done;
         }
         DBG("Switched to uid %i", pw_s.pw_uid);
@@ -253,14 +255,14 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     if (retval == -1)
     {
         DBG("get_user_mapping: Unable to get user mapping");
-        retval = PAM_IGNORE;
+        retval = PAM_CONV_ERR;
         goto done;
     }
 
     if (openasuser) {
         if (seteuid(0)) {
             DBG("Unable to switch back to uid 0");
-            retval = PAM_IGNORE;
+            retval = PAM_CONV_ERR;
             goto done;
         }
         DBG("Switched back to uid 0");
@@ -280,12 +282,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     if (buf) {
         free(buf);
         buf = NULL;
-    }
-
-    if (password)
-    {
-        free(password);
-        password = NULL;
     }
 
     if (keyHandle)

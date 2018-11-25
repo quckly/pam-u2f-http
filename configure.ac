@@ -25,6 +25,7 @@ AC_CHECK_HEADERS([security/pam_modules.h security/_pam_macros.h security/pam_mod
    #include <security/pam_appl.h>])
 AC_CHECK_LIB([pam], [pam_start])
 
+
 case "$host" in
      *darwin*)  PAMDIR="/usr/lib/pam";;
      *linux*)   PAMDIR="/lib/x86_64-linux-gnu/security";;
@@ -41,7 +42,6 @@ AC_ARG_WITH(pam-dir,
 AC_SUBST(PAMDIR, "$PAMDIR")
 
 PKG_CHECK_MODULES([LIBU2FSERVER], [u2f-server], [], [])
-
 
 # Check for secure_getenv
 am_save_CFLAGS="$CFLAGS"
