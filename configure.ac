@@ -1,7 +1,7 @@
 #  Copyright (C) 2014-2018 Yubico AB
 AC_PREREQ([2.65])
-AC_INIT([pam_u2f], [1.0.8], [https://github.com/Yubico/pam-u2f/issues],
-  [pam_u2f], [https://developers.yubico.com/pam-u2f/])
+AC_INIT([pam_u2f_http], [1.0.8], [https://github.com/wavvs/pam-u2f-http/issues],
+  [pam_u2f_http], [https://developers.yubico.com/pam-u2f/])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -17,18 +17,6 @@ AM_PROG_AR
 AC_LIBTOOL_WIN32_DLL
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
-
-
-AC_ARG_ENABLE([man],
-  [AS_HELP_STRING([--disable-man], [Disable man page generation])],
-  [:],
-  [enable_man=yes]
-  )
-AS_IF([test "$enable_man" = "yes"],
-  [AM_MISSING_PROG([A2X], a2x, $missing_dir)]
-)
-AM_CONDITIONAL([ENABLE_MAN], [test "$enable_man" = "yes"])
-
 
 AC_CHECK_HEADERS([security/pam_appl.h], [],
   [AC_MSG_ERROR([[PAM header files not found, install libpam-dev.]])])
@@ -52,8 +40,6 @@ AC_ARG_WITH(pam-dir,
 ])
 AC_SUBST(PAMDIR, "$PAMDIR")
 
-
-PKG_CHECK_MODULES([LIBU2FHOST], [u2f-host], [], [])
 PKG_CHECK_MODULES([LIBU2FSERVER], [u2f-server], [], [])
 
 
@@ -94,15 +80,12 @@ AC_OUTPUT
 AC_MSG_NOTICE([Summary of build options:
 
   Version:             ${VERSION}
-  Host type:           ${host}
   Install prefix:      ${prefix}
   Compiler:            ${CC}
   CFLAGS:              ${CFLAGS}
   CWFLAGS:             ${CWFLAGS}
   CSFLAGS:             ${CSFLAGS}
   Library types:       Shared=${enable_shared}, Static=${enable_static}
-  LIBU2FHOST CFLAGS:   $LIBU2FHOST_CFLAGS
-  LIBU2FHOST LIBS:     $LIBU2FHOST_LIBS
   LIBU2FSERVER CFLAGS: $LIBU2FSERVER_CFLAGS
   LIBU2FSERVER LIBS:   $LIBU2FSERVER_LIBS
   PAMDIR:              $PAMDIR

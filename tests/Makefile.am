@@ -6,7 +6,7 @@ AM_CPPFLAGS=-I$(srcdir)/.. -I$(builddir)/..
 
 AM_LDFLAGS = -no-install
 
-LDADD = $(top_builddir)/pam_u2f.la
+LDADD = $(top_builddir)/pam_u2f_http.la
 
 check_PROGRAMS = basic
 TESTS = $(check_PROGRAMS)

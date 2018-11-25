@@ -7,6 +7,7 @@ defgroup "user"
 
 option "origin" o "Origin URL to use during registration. Defaults to pam://hostname" string optional
 option "appid" i "Application ID to use during registration. Defaults to pam://hostname" string optional
+option "url" h "URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register" string optional
 option "debug" d "Print debug information (highly verbose)" flag off
 option "verbose" v "Print information about chosen origin and appid" flag off
 groupoption "username" u "The name of the user registering the device. Defaults to the current user name" string group="user"

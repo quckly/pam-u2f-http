@@ -49,6 +49,9 @@ struct gengetopt_args_info
   char * appid_arg;	/**< @brief Application ID to use during registration. Defaults to pam://hostname.  */
   char * appid_orig;	/**< @brief Application ID to use during registration. Defaults to pam://hostname original value given at command line.  */
   const char *appid_help; /**< @brief Application ID to use during registration. Defaults to pam://hostname help description.  */
+  char * url_arg;	/**< @brief URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register.  */
+  char * url_orig;	/**< @brief URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register original value given at command line.  */
+  const char *url_help; /**< @brief URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register help description.  */
   int debug_flag;	/**< @brief Print debug information (highly verbose) (default=off).  */
   const char *debug_help; /**< @brief Print debug information (highly verbose) help description.  */
   int verbose_flag;	/**< @brief Print information about chosen origin and appid (default=off).  */
@@ -62,6 +65,7 @@ struct gengetopt_args_info
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int origin_given ;	/**< @brief Whether origin was given.  */
   unsigned int appid_given ;	/**< @brief Whether appid was given.  */
+  unsigned int url_given ;	/**< @brief Whether url was given.  */
   unsigned int debug_given ;	/**< @brief Whether debug was given.  */
   unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
   unsigned int username_given ;	/**< @brief Whether username was given.  */

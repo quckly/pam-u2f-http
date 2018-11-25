@@ -39,3 +39,4 @@ pam_u2f.la
 man/pam_u2f.8
 pamu2fcfg/pamu2fcfg
 man/pamu2fcfg.1
+.idea/*

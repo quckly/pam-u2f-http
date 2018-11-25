@@ -34,10 +34,11 @@ const char *gengetopt_args_info_versiontext = "";
 const char *gengetopt_args_info_description = "";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help             Print help and exit",
+  "      --help             Print help and exit",
   "  -V, --version          Print version and exit",
   "  -o, --origin=STRING    Origin URL to use during registration. Defaults to\n                           pam://hostname",
   "  -i, --appid=STRING     Application ID to use during registration. Defaults to\n                           pam://hostname",
+  "  -h, --url=STRING       URL of NFC proxy server. Defaults to\n                           http://127.0.0.1:8080/register",
   "  -d, --debug            Print debug information (highly verbose)\n                           (default=off)",
   "  -v, --verbose          Print information about chosen origin and appid\n                           (default=off)",
   "\n Group: user",
@@ -71,6 +72,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->version_given = 0 ;
   args_info->origin_given = 0 ;
   args_info->appid_given = 0 ;
+  args_info->url_given = 0 ;
   args_info->debug_given = 0 ;
   args_info->verbose_given = 0 ;
   args_info->username_given = 0 ;
@@ -86,6 +88,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->origin_orig = NULL;
   args_info->appid_arg = NULL;
   args_info->appid_orig = NULL;
+  args_info->url_arg = NULL;
+  args_info->url_orig = NULL;
   args_info->debug_flag = 0;
   args_info->verbose_flag = 0;
   args_info->username_arg = NULL;
@@ -102,10 +106,11 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->version_help = gengetopt_args_info_help[1] ;
   args_info->origin_help = gengetopt_args_info_help[2] ;
   args_info->appid_help = gengetopt_args_info_help[3] ;
-  args_info->debug_help = gengetopt_args_info_help[4] ;
-  args_info->verbose_help = gengetopt_args_info_help[5] ;
-  args_info->username_help = gengetopt_args_info_help[7] ;
-  args_info->nouser_help = gengetopt_args_info_help[8] ;
+  args_info->url_help = gengetopt_args_info_help[4] ;
+  args_info->debug_help = gengetopt_args_info_help[5] ;
+  args_info->verbose_help = gengetopt_args_info_help[6] ;
+  args_info->username_help = gengetopt_args_info_help[8] ;
+  args_info->nouser_help = gengetopt_args_info_help[9] ;
   
 }
 
@@ -193,6 +198,8 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->origin_orig));
   free_string_field (&(args_info->appid_arg));
   free_string_field (&(args_info->appid_orig));
+  free_string_field (&(args_info->url_arg));
+  free_string_field (&(args_info->url_orig));
   free_string_field (&(args_info->username_arg));
   free_string_field (&(args_info->username_orig));
   
@@ -233,6 +240,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "origin", args_info->origin_orig, 0);
   if (args_info->appid_given)
     write_into_file(outfile, "appid", args_info->appid_orig, 0);
+  if (args_info->url_given)
+    write_into_file(outfile, "url", args_info->url_orig, 0);
   if (args_info->debug_given)
     write_into_file(outfile, "debug", 0, 0 );
   if (args_info->verbose_given)
@@ -495,10 +504,11 @@ cmdline_parser_internal (
       int option_index = 0;
 
       static struct option long_options[] = {
-        { "help",	0, NULL, 'h' },
+        { "help",	0, NULL, 0 },
         { "version",	0, NULL, 'V' },
         { "origin",	1, NULL, 'o' },
         { "appid",	1, NULL, 'i' },
+        { "url",	1, NULL, 'h' },
         { "debug",	0, NULL, 'd' },
         { "verbose",	0, NULL, 'v' },
         { "username",	1, NULL, 'u' },
@@ -506,26 +516,12 @@ cmdline_parser_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVo:i:dvu:n", long_options, &option_index);
+      c = getopt_long (argc, argv, "Vo:i:h:dvu:n", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
       switch (c)
         {
-        case 'h':	/* Print help and exit.  */
-        
-        
-          if (update_arg( 0 , 
-               0 , &(args_info->help_given),
-              &(local_args_info.help_given), optarg, 0, 0, ARG_NO,
-              check_ambiguity, override, 0, 0,
-              "help", 'h',
-              additional_error))
-            goto failure;
-          cmdline_parser_free (&local_args_info);
-          return 0;
-        
-          break;
         case 'V':	/* Print version and exit.  */
           cmdline_parser_print_version ();
           cmdline_parser_free (&local_args_info);
@@ -551,6 +547,18 @@ cmdline_parser_internal (
               &(local_args_info.appid_given), optarg, 0, 0, ARG_STRING,
               check_ambiguity, override, 0, 0,
               "appid", 'i',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'h':	/* URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register.  */
+        
+        
+          if (update_arg( (void *)&(args_info->url_arg), 
+               &(args_info->url_orig), &(args_info->url_given),
+              &(local_args_info.url_given), optarg, 0, 0, ARG_STRING,
+              check_ambiguity, override, 0, 0,
+              "url", 'h',
               additional_error))
             goto failure;
         
@@ -607,6 +615,24 @@ cmdline_parser_internal (
           break;
 
         case 0:	/* Long option with no short option */
+          /* Print help and exit.  */
+          if (strcmp (long_options[option_index].name, "help") == 0)
+          {
+          
+          
+            if (update_arg( 0 , 
+                 0 , &(args_info->help_given),
+                &(local_args_info.help_given), optarg, 0, 0, ARG_NO,
+                check_ambiguity, override, 0, 0,
+                "help", 'h',
+                additional_error))
+              goto failure;
+            cmdline_parser_free (&local_args_info);
+            return 0;
+          
+          }
+          
+          break;
         case '?':	/* Invalid option.  */
           /* `getopt_long' already printed an error message.  */
           goto failure;
