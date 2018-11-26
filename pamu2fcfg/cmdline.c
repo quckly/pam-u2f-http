@@ -34,16 +34,15 @@ const char *gengetopt_args_info_versiontext = "";
 const char *gengetopt_args_info_description = "";
 
 const char *gengetopt_args_info_help[] = {
-  "      --help             Print help and exit",
+  "  -h, --help             Print help and exit",
   "  -V, --version          Print version and exit",
   "  -o, --origin=STRING    Origin URL to use during registration. Defaults to\n                           pam://hostname",
   "  -i, --appid=STRING     Application ID to use during registration. Defaults to\n                           pam://hostname",
-  "  -h, --url=STRING       URL of NFC proxy server. Defaults to\n                           http://127.0.0.1:8080/register",
+  "  -p, --url=STRING       URL of NFC proxy server. Defaults to\n                           http://127.0.0.1:8080/register",
   "  -d, --debug            Print debug information (highly verbose)\n                           (default=off)",
   "  -v, --verbose          Print information about chosen origin and appid\n                           (default=off)",
   "\n Group: user",
   "  -u, --username=STRING  The name of the user registering the device. Defaults\n                           to the current user name",
-  "  -n, --nouser           Print only registration information (keyHandle and\n                           public key). Useful for appending",
     0
 };
 
@@ -76,7 +75,6 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->debug_given = 0 ;
   args_info->verbose_given = 0 ;
   args_info->username_given = 0 ;
-  args_info->nouser_given = 0 ;
   args_info->user_group_counter = 0 ;
 }
 
@@ -110,7 +108,6 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->debug_help = gengetopt_args_info_help[5] ;
   args_info->verbose_help = gengetopt_args_info_help[6] ;
   args_info->username_help = gengetopt_args_info_help[8] ;
-  args_info->nouser_help = gengetopt_args_info_help[9] ;
   
 }
 
@@ -248,8 +245,6 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "verbose", 0, 0 );
   if (args_info->username_given)
     write_into_file(outfile, "username", args_info->username_orig, 0);
-  if (args_info->nouser_given)
-    write_into_file(outfile, "nouser", 0, 0 );
   
 
   i = EXIT_SUCCESS;
@@ -306,7 +301,6 @@ reset_group_user(struct gengetopt_args_info *args_info)
   args_info->username_given = 0 ;
   free_string_field (&(args_info->username_arg));
   free_string_field (&(args_info->username_orig));
-  args_info->nouser_given = 0 ;
 
   args_info->user_group_counter = 0;
 }
@@ -504,24 +498,37 @@ cmdline_parser_internal (
       int option_index = 0;
 
       static struct option long_options[] = {
-        { "help",	0, NULL, 0 },
+        { "help",	0, NULL, 'h' },
         { "version",	0, NULL, 'V' },
         { "origin",	1, NULL, 'o' },
         { "appid",	1, NULL, 'i' },
-        { "url",	1, NULL, 'h' },
+        { "url",	1, NULL, 'p' },
         { "debug",	0, NULL, 'd' },
         { "verbose",	0, NULL, 'v' },
         { "username",	1, NULL, 'u' },
-        { "nouser",	0, NULL, 'n' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "Vo:i:h:dvu:n", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVo:i:p:dvu:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
       switch (c)
         {
+        case 'h':	/* Print help and exit.  */
+        
+        
+          if (update_arg( 0 , 
+               0 , &(args_info->help_given),
+              &(local_args_info.help_given), optarg, 0, 0, ARG_NO,
+              check_ambiguity, override, 0, 0,
+              "help", 'h',
+              additional_error))
+            goto failure;
+          cmdline_parser_free (&local_args_info);
+          return 0;
+        
+          break;
         case 'V':	/* Print version and exit.  */
           cmdline_parser_print_version ();
           cmdline_parser_free (&local_args_info);
@@ -551,14 +558,14 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'h':	/* URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register.  */
+        case 'p':	/* URL of NFC proxy server. Defaults to http://127.0.0.1:8080/register.  */
         
         
           if (update_arg( (void *)&(args_info->url_arg), 
                &(args_info->url_orig), &(args_info->url_given),
               &(local_args_info.url_given), optarg, 0, 0, ARG_STRING,
               check_ambiguity, override, 0, 0,
-              "url", 'h',
+              "url", 'p',
               additional_error))
             goto failure;
         
@@ -598,41 +605,8 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'n':	/* Print only registration information (keyHandle and public key). Useful for appending.  */
-        
-          if (args_info->user_group_counter && override)
-            reset_group_user (args_info);
-          args_info->user_group_counter += 1;
-        
-          if (update_arg( 0 , 
-               0 , &(args_info->nouser_given),
-              &(local_args_info.nouser_given), optarg, 0, 0, ARG_NO,
-              check_ambiguity, override, 0, 0,
-              "nouser", 'n',
-              additional_error))
-            goto failure;
-        
-          break;
 
         case 0:	/* Long option with no short option */
-          /* Print help and exit.  */
-          if (strcmp (long_options[option_index].name, "help") == 0)
-          {
-          
-          
-            if (update_arg( 0 , 
-                 0 , &(args_info->help_given),
-                &(local_args_info.help_given), optarg, 0, 0, ARG_NO,
-                check_ambiguity, override, 0, 0,
-                "help", 'h',
-                additional_error))
-              goto failure;
-            cmdline_parser_free (&local_args_info);
-            return 0;
-          
-          }
-          
-          break;
         case '?':	/* Invalid option.  */
           /* `getopt_long' already printed an error message.  */
           goto failure;

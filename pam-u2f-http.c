@@ -49,7 +49,7 @@ static void parse_cfg(int flags, int argc, const char **argv, cfg_t *cfg) {
             cfg->origin = argv[i] + 7;
         if (strncmp(argv[i], "appid=", 6) == 0)
             cfg->appid = argv[i] + 6;
-        if (strncmp(argv[i], "url=", 4))
+        if (strncmp(argv[i], "url=", 4) == 0)
             cfg->url = argv[i] + 4;
         if (strncmp(argv[i], "debug_file=", 11) == 0) {
             const char *filename = argv[i] + 11;
@@ -118,7 +118,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     int should_free_origin = 0;
     int should_free_appid = 0;
     int should_free_auth_file = 0;
-    int should_free_url = 0;
 
     parse_cfg(flags, argc, argv, cfg);
 
@@ -182,7 +181,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     if (!cfg->url) {
         DBG("URL not specified, using http://127.0.0.1:55555/authenticate");
         cfg->url = "http://127.0.0.1:55555/authenticate";
-        should_free_url = 1;
     }
 
     DBG("Requesting authentication for user %s", user);
@@ -309,11 +307,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     if (should_free_auth_file) {
         free((char *) cfg->auth_file);
         cfg->auth_file = NULL;
-    }
-
-    if (should_free_url) {
-        free((char *) cfg->url);
-        cfg->url = NULL;
     }
 
     DBG("done. [%s]", pam_strerror(pamh, retval));

@@ -59,7 +59,6 @@ struct gengetopt_args_info
   char * username_arg;	/**< @brief The name of the user registering the device. Defaults to the current user name.  */
   char * username_orig;	/**< @brief The name of the user registering the device. Defaults to the current user name original value given at command line.  */
   const char *username_help; /**< @brief The name of the user registering the device. Defaults to the current user name help description.  */
-  const char *nouser_help; /**< @brief Print only registration information (keyHandle and public key). Useful for appending help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
@@ -69,7 +68,6 @@ struct gengetopt_args_info
   unsigned int debug_given ;	/**< @brief Whether debug was given.  */
   unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
   unsigned int username_given ;	/**< @brief Whether username was given.  */
-  unsigned int nouser_given ;	/**< @brief Whether nouser was given.  */
 
   int user_group_counter; /**< @brief Counter for group user */
 } ;

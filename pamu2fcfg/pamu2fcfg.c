@@ -148,14 +148,15 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (!args_info.nouser_given)
-        printf("%s", user);
+    printf("{\n");
+    printf("\"%s\": { ", user);
 
-    printf(":%s,", kh);
+    printf("\"keyHandle\":\"%s\", \n", kh);
+    printf("\"publicKey\":\"");
     for (i = 0; i < U2FS_PUBLIC_KEY_LEN; i++) {
         printf("%02x", pk[i] & 0xFF);
     }
-
+    printf("\"\n}\n");
     exit_code = EXIT_SUCCESS;
 
     u2fs_done(ctx);

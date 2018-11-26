@@ -36,7 +36,6 @@ struct PostRead {
 
 typedef struct {
     int debug;
-    int nouserok;
     int openasuser;
     const char *auth_file;
     const char *origin;

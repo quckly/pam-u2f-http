@@ -173,10 +173,10 @@ int do_request(const char *data, const char *url, FILE *debug_file, char **outpu
                 else
                     retval = 0;
             } else {
-                D(debug_file, "Non 200 response from server");
+                D(debug_file, "Non 200 response from server %d", response_code);
             }
         } else
-                D(debug_file, "Cannot perform request");
+                D(debug_file, "Cannot perform request %d", res);
         curl_easy_cleanup(curl);
     }
 
@@ -246,27 +246,27 @@ int do_authentication(const cfg_t *cfg, const char *keyHandle, const unsigned ch
     if ((s_rc = u2fs_set_origin(ctx, cfg->origin)) != U2FS_OK) {
         if (cfg->debug)
                 D(cfg->debug_file, "Unable to set origin: %s", u2fs_strerror(s_rc));
-        return retval;
+        goto err;
     }
 
     if ((s_rc = u2fs_set_appid(ctx, cfg->appid)) != U2FS_OK) {
         if (cfg->debug)
                 D(cfg->debug_file, "Unable to set appid: %s", u2fs_strerror(s_rc));
-        return retval;
+        goto err;
     }
 
 
     if ((s_rc = u2fs_set_keyHandle(ctx, keyHandle)) != U2FS_OK) {
         if (cfg->debug)
                 D(cfg->debug_file, "Unable to set keyHandle: %s", u2fs_strerror(s_rc));
-        return retval;
+        goto err;
     }
 
 
     if ((s_rc = u2fs_set_publicKey(ctx, publicKey)) != U2FS_OK) {
         if (cfg->debug)
                 D(cfg->debug_file, "Unable to set publicKey %s", u2fs_strerror(s_rc));
-        return retval;
+        goto err;
     }
 
 
@@ -274,9 +274,7 @@ int do_authentication(const cfg_t *cfg, const char *keyHandle, const unsigned ch
         if (cfg->debug)
                 D(cfg->debug_file, "Unable to produce authentication challenge: %s",
                   u2fs_strerror(s_rc));
-        free(buf);
-        buf = NULL;
-        return retval;
+        goto done;
     }
 
     if (cfg->debug)
@@ -284,9 +282,7 @@ int do_authentication(const cfg_t *cfg, const char *keyHandle, const unsigned ch
 
     // send challenge
     if (do_request(buf, cfg->url, cfg->debug_file, &challenge)) {
-        free(buf);
-        buf = NULL;
-        return retval;
+        goto done;
     }
 
     if (cfg->debug)
@@ -305,8 +301,10 @@ int do_authentication(const cfg_t *cfg, const char *keyHandle, const unsigned ch
                 D(cfg->debug_file, "Unable to authenticate user, %s", u2fs_strerror(s_rc));
     }
 
+    done:
     free(buf);
     buf = NULL;
+    err:
     u2fs_done(ctx);
     u2fs_global_done();
 
